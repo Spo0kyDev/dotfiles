@@ -22,5 +22,19 @@ if command -v zsh >/dev/null 2>&1; then
   source "$HOME/.zshrc"
 fi
 
+# -------------------------------------------------------------------
+# Vim setup: ensure Gruvbox is installed
+# -------------------------------------------------------------------
+echo "🔧 Setting up Vim Gruvbox theme..."
+mkdir -p "$HOME/.vim/colors"
+if [ ! -f "$HOME/.vim/colors/gruvbox.vim" ]; then
+  curl -fsSL https://raw.githubusercontent.com/morhetz/gruvbox/master/colors/gruvbox.vim \
+    -o "$HOME/.vim/colors/gruvbox.vim"
+  echo "✅ Gruvbox installed for Vim."
+else
+  echo "⚡ Gruvbox already installed for Vim."
+fi
+
+
 echo "✅ Dotfiles bootstrapped!"
 
