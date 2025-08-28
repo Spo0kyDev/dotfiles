@@ -1,40 +1,55 @@
-#!/usr/bin/env bash
-set -e
+#!/usr/bin/env zsh
+set -euo pipefail
 
-echo "🚀 Bootstrapping dotfiles for $USER..."
+log()   { print -P "%F{cyan}==>%f $*"; }
+ok()    { print -P "%F{green}✓%f  $*"; }
+warn()  { print -P "%F{yellow}!%f  $*"; }
+fail()  { print -P "%F{red}✗%f  $*"; exit 1; }
 
-# Ensure repo exists
-if [ ! -d "$HOME/dotfiles/.git" ]; then
-  echo "Cloning dotfiles..."
-  git clone git@github.com:Spo0kyDev/dotfiles.git "$HOME/dotfiles"
-fi
+REPO_SSH="git@github.com:Spo0kyDev/dotfiles.git"
+DOTDIR="$HOME/dotfiles"
 
-cd "$HOME/dotfiles" || exit 1
+log "Bootstrapping dotfiles for $USER"
 
-# Symlink configs
-ln -sf "$HOME/dotfiles/.zshrc" "$HOME/.zshrc"
-[ -f "$HOME/dotfiles/.vimrc" ] && ln -sf "$HOME/dotfiles/.vimrc" "$HOME/.vimrc"
-[ -f "$HOME/dotfiles/.dircolors" ] && ln -sf "$HOME/dotfiles/.dircolors" "$HOME/.dircolors"
+# Ensure git is available
+command -v git >/dev/null 2>&1 || fail "git not found. Install git and re-run."
 
-# Reload Zsh if present
-if command -v zsh >/dev/null 2>&1; then
-  echo "Reloading zsh..."
-  source "$HOME/.zshrc"
-fi
-
-# -------------------------------------------------------------------
-# Vim setup: ensure Gruvbox is installed
-# -------------------------------------------------------------------
-echo "🔧 Setting up Vim Gruvbox theme..."
-mkdir -p "$HOME/.vim/colors"
-if [ ! -f "$HOME/.vim/colors/gruvbox.vim" ]; then
-  curl -fsSL https://raw.githubusercontent.com/morhetz/gruvbox/master/colors/gruvbox.vim \
-    -o "$HOME/.vim/colors/gruvbox.vim"
-  echo "✅ Gruvbox installed for Vim."
+# Clone repo if missing
+if [ ! -d "$DOTDIR/.git" ]; then
+  log "Cloning $REPO_SSH into $DOTDIR"
+  git clone "$REPO_SSH" "$DOTDIR"
 else
-  echo "⚡ Gruvbox already installed for Vim."
+  log "Dotfiles repo exists. Pulling latest..."
+  git -C "$DOTDIR" pull --ff-only || warn "Could not pull latest (skipping)."
 fi
 
+cd "$DOTDIR"
 
-echo "✅ Dotfiles bootstrapped!"
+# Symlinks
+log "Linking configuration files"
+ln -sf "$DOTDIR/.zshrc"     "$HOME/.zshrc"
+[ -f "$DOTDIR/.vimrc" ]     && ln -sf "$DOTDIR/.vimrc"     "$HOME/.vimrc"
+[ -f "$DOTDIR/.dircolors" ] && ln -sf "$DOTDIR/.dircolors" "$HOME/.dircolors"
+ok "Symlinks updated"
+
+# Vim: install Gruvbox colorscheme
+log "Ensuring Gruvbox for Vim is installed"
+mkdir -p "$HOME/.vim/colors"
+GRUV_DST="$HOME/.vim/colors/gruvbox.vim"
+if [ ! -f "$GRUV_DST" ]; then
+  if command -v curl >/dev/null 2>&1; then
+    curl -fsSL https://raw.githubusercontent.com/morhetz/gruvbox/master/colors/gruvbox.vim -o "$GRUV_DST"
+  elif command -v wget >/dev/null 2>&1; then
+    wget -qO "$GRUV_DST" https://raw.githubusercontent.com/morhetz/gruvbox/master/colors/gruvbox.vim
+  else
+    warn "Neither curl nor wget found; skipping Gruvbox download."
+  fi
+  [ -f "$GRUV_DST" ] && ok "Gruvbox installed" || warn "Gruvbox not installed"
+else
+  ok "Gruvbox already present"
+fi
+
+print
+ok "Bootstrap complete"
+print -P "%F{yellow}Note:%f Open a new zsh session or run 'exec zsh' to load .zshrc"
 
