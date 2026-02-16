@@ -28,7 +28,7 @@ parse_git_branch() {
 # Green: user@host
 # Blue: current directory
 # Yellow: git branch (if any)
-PS1='\[\e[1;32m\]\u@\h \[\e[1;34m\]\w\[\e[0m\] \[\e[1;33m\]$(parse_git_branch)\[\e[0m\] \$'
+PS1='\[\e[1;32m\]\u@\h \[\e[1;34m\]\w/\[\e[0m\] \[\e[1;33m\]$(parse_git_branch)\[\e[0m\] \$ '
 
 # --- History improvements ---
 export HISTCONTROL=ignoredups:erasedups
