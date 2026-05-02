@@ -15,7 +15,7 @@ filetype plugin indent on
 set number
 set relativenumber
 set cursorline
-set scrolloff=8
+set scrolloff=999
 set nowrap
 
 " ============================================================================
@@ -46,8 +46,9 @@ let g:c_extra_syntax = 1
 let g:c_syntax_for_h = 1
 let c_gnu = 1
 let c_comment_strings = 1
-let c_space_errors = 1
+" let c_space_errors = 1
 let g:load_doxygen_syntax = 1
+autocmd FileType c setlocal cinoptions=:0,l1,t0,g0,(0
 
 " ============================================================================
 " === Clipboard ===
@@ -118,9 +119,8 @@ inoremap {<CR> {<CR>}<Esc>O
 " expand it into a Doxygen/Javadoc-style comment block.
 inoremap <expr> <CR> getline('.') =~ '^\s*/\*\*$' ? '<CR> * <CR>*/<Esc>kA' : '<CR>'
 
-" Insert a block comment skeleton with Ctrl-_ or Ctrl-/.
-inoremap <C-_> /*  */<Left><Left><Left>
-inoremap <C-/> /*  */<Left><Left><Left>
+" Insert a block comment skeleton.
+inoremap <C-b> /*<CR> * <CR> */<Up><End>
 
 " ============================================================================
 " === Plugin-Specific Settings ===
@@ -128,16 +128,23 @@ inoremap <C-/> /*  */<Left><Left><Left>
 " Enable rainbow parentheses/brackets if the plugin is installed.
 let g:rainbow_active = 1
 
-" ============================================================================
-" === Build Settings for C ===
-" ============================================================================
-" Default: C11 with AddressSanitizer for debugging.
-set makeprg=gcc\ -std=c11\ -Wall\ -Wextra\ -g\ -O0\ -fsanitize=address\ -fno-omit-frame-pointer\ %\ -o\ %<
+" ================================
+" Build / Compile Setup (C / C++)
+" ================================
 
-" Uncomment this for strict school/C89-style builds instead.
-" set makeprg=gcc\ -std=gnu89\ -Wall\ -Wextra\ -pedantic\ %\ -o\ %:r.out
+augroup build_setup
+  autocmd!
+  autocmd FileType c   setlocal makeprg=gcc\ -std=c11\ -Wall\ -Wextra\ -g\ -O0\ -fsanitize=address\ -fno-omit-frame-pointer\ %\ -o\ %<
+  autocmd FileType cpp setlocal makeprg=g++\ -std=c++11\ -Wall\ -Wextra\ -g\ -O0\ %\ -o\ %<
+augroup END
 
 set errorformat=%f:%l:%c:\ %m
+
+" F5: save, compile silently, show quickfix only if errors exist
+nnoremap <F5> :w<CR>:silent make<CR>:redraw!<CR>:cwindow<CR>
+
+" F6: save, compile silently, run only if no errors
+nnoremap <F6> :w<CR>:silent make<CR>:redraw!<CR>:cwindow<CR>:if empty(getqflist())<Bar>execute '!./' . expand('%:r')<Bar>endif<CR>
 
 " ============================================================================
 " === C File Build and Run Shortcuts ===
