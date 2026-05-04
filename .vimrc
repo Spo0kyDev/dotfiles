@@ -127,45 +127,16 @@ inoremap <C-b> /*<CR> * <CR> */<Up><End>
 " ============================================================================
 " Enable rainbow parentheses/brackets if the plugin is installed.
 let g:rainbow_active = 1
-
 " ================================
-" Build / Compile Setup (C / C++)
+" Build / Run Setup for C
 " ================================
-
-augroup build_setup
-  autocmd!
-  autocmd FileType c   setlocal makeprg=gcc\ -std=c11\ -Wall\ -Wextra\ -g\ -O0\ -fsanitize=address\ -fno-omit-frame-pointer\ %\ -o\ %<
-  autocmd FileType cpp setlocal makeprg=g++\ -std=c++11\ -Wall\ -Wextra\ -g\ -O0\ %\ -o\ %<
-augroup END
-
+" Build setup
 set errorformat=%f:%l:%c:\ %m
+set makeprg=gcc\ -std=c11\ -Wall\ -Wextra\ -g\ -O0\ %\ -o\ %<
 
-" F5: save, compile silently, show quickfix only if errors exist
-nnoremap <F5> :w<CR>:silent make<CR>:redraw!<CR>:cwindow<CR>
+" F5: compile (errors only in quickfix)
+nnoremap <F5> :w<CR>:cclose<CR>:silent make!<CR>:redraw!<CR>:cwindow<CR>
 
-" F6: save, compile silently, run only if no errors
-nnoremap <F6> :w<CR>:silent make<CR>:redraw!<CR>:cwindow<CR>:if empty(getqflist())<Bar>execute '!./' . expand('%:r')<Bar>endif<CR>
+" F9
+nnoremap <F9> :!./%<<CR>
 
-" ============================================================================
-" === C File Build and Run Shortcuts ===
-" ============================================================================
-augroup CBuildRun
-  autocmd!
-
-  " F5 = save file, compile it, open quickfix window if there are errors.
-  autocmd FileType c nnoremap <buffer> <F5> :w<CR>:silent make<CR>:cwindow<CR>:redraw!<CR>
-
-  " F6 = save file, compile it, clear terminal output, and run the program.
-  autocmd FileType c nnoremap <buffer> <F6> :w<CR>:silent make<CR>:!clear; ./%:r<CR>
-augroup END
-
-" ============================================================================
-" === Quickfix Shortcuts ===
-" ============================================================================
-nnoremap ]q :cnext<CR>
-nnoremap [q :cprev<CR>
-nnoremap <leader>q :cclose<CR>
-
-" Legacy alternatives from the old config.
-nnoremap <F9> :w<CR>:make<CR>:copen<CR>
-nnoremap <F8> :!./%:r.out<CR>
